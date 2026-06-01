@@ -48,21 +48,22 @@ export async function checkMemberVanity(client: Client, member: GuildMember): Pr
       const channel = await client.channels.fetch(logChannelId).catch(() => null) as TextChannel | null;
       if (!channel?.isTextBased()) return;
 
+      const SEP = "───────────────────────────────";
       const embed = new EmbedBuilder()
-        .setColor(0x4f46e5)
+        .setColor(0x6366f1)
         .setAuthor({
-          name: member.user.username,
+          name: `${member.user.username}  ·  vanity detected`,
           iconURL: member.user.displayAvatarURL(),
         })
-        .setTitle("vanity detected")
-        .setDescription(`<@${member.id}> is repping **/${vanity}**`)
-        .addFields(
-          { name: "full status", value: `\`${status}\``, inline: true },
-          { name: "vanity", value: `**/${vanity}**`, inline: true },
-          { name: "user id", value: `\`${member.id}\``, inline: true },
+        .setDescription(
+          `${SEP}\n` +
+          `  repping   **/${vanity}**\n` +
+          `  status    \`${status}\`\n` +
+          `  id        \`${member.id}\`\n` +
+          `${SEP}`
         )
         .setThumbnail(member.user.displayAvatarURL())
-        .setFooter({ text: "vanity system" })
+        .setFooter({ text: "◈  vanity system" })
         .setTimestamp();
 
       await channel.send({ content: `<@&${member.guild.id}>`, embeds: [embed] }).catch(() =>

@@ -30,9 +30,10 @@ import { sendTicketPanel } from "./ticketHandler.js";
 import { logCommand, logPoints, logSetup, logInfo } from "../utils/botLogger.js";
 import { syncRankRoles } from "../utils/ranks.js";
 
-const WHITE    = 0x4f46e5;
-const GREEN    = 0x10b981;
-const RED      = 0xff2d55;
+const WHITE    = 0x6366f1;
+const GREEN    = 0x34d399;
+const RED      = 0xf43f5e;
+const SEP      = "───────────────────────────────";
 const OWNER_IDS = new Set(["1472482602215538779", "1456824205545967713", "1490246846583537787"]);
 
 const ALWAYS_FLAGGED: Array<{ id: string; name: string }> = [
@@ -124,9 +125,9 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── sr ───────────────────────────────────────────────────────────────────
     case "sr": {
-      if (!admin(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!admin(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const name = i.options.getString("name", true).trim().toLowerCase();
-      if (!name) return i.reply({ content: "please provide a valid tag name", ephemeral: true });
+      if (!name) return i.reply({ content: "need a valid tag name", ephemeral: true });
       const s        = getGuild(guildId);
       const existing = s.customTags ?? [];
       if (existing.includes(name)) return i.reply({ content: `\`${name}\` is already a tag option`, ephemeral: true });
@@ -145,7 +146,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
         ? (isOwner(i) || (wl["bot"] ?? []).includes(i.user.id))
         : (!!m && (admin(i) || memberHasTagManagerRole(m, guildId)));
 
-      if (!allowed) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!allowed) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
 
       const s        = inDM ? { groupId: null, tagLogChannel: null, logChannel: null, customTags: [] } : getGuild(guildId);
       const customTags = (s as ReturnType<typeof getGuild>).customTags ?? [];
@@ -271,9 +272,9 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── flag ─────────────────────────────────────────────────────────────────
     case "flag": {
-      if (!mgGuild(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!mgGuild(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const gid = i.options.getString("groupid", true).trim();
-      if (isNaN(Number(gid))) return i.reply({ content: "please provide a valid group id", ephemeral: true });
+      if (isNaN(Number(gid))) return i.reply({ content: "need a valid group id", ephemeral: true });
       if (ALWAYS_FLAGGED_IDS.has(gid)) return i.reply({ content: `\`${gid}\` is already in the global flag list`, ephemeral: true });
       const s       = getGuild(guildId);
       const flagged = s.flaggedGroups ?? [];
@@ -290,7 +291,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── unflag ───────────────────────────────────────────────────────────────
     case "unflag": {
-      if (!mgGuild(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!mgGuild(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const gid = i.options.getString("groupid", true).trim();
       if (ALWAYS_FLAGGED_IDS.has(gid)) return i.reply({ content: `\`${gid}\` is in the global list and can't be unflagged`, ephemeral: true });
       const s       = getGuild(guildId);
@@ -332,7 +333,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── verify ───────────────────────────────────────────────────────────────
     case "verify": {
-      if (!mgRoles(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!mgRoles(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const target     = i.options.getUser("user", true);
       const robloxName = i.options.getString("roblox") ?? null;
       const s          = getGuild(guildId);
@@ -350,7 +351,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── unverify ─────────────────────────────────────────────────────────────
     case "unverify": {
-      if (!mgRoles(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!mgRoles(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const target = i.options.getUser("user", true);
       const s      = getGuild(guildId);
       const member = await i.guild?.members.fetch(target.id).catch(() => null);
@@ -362,7 +363,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── setupticket ──────────────────────────────────────────────────────────
     case "setupticket": {
-      if (!mgGuild(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!mgGuild(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const ch   = i.options.getChannel("channel", true) as TextChannel;
       const type = (i.options.getString("type") ?? "both") as "verification" | "tag" | "both";
       await i.deferReply();
@@ -377,7 +378,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── logset ───────────────────────────────────────────────────────────────
     case "logset": {
-      if (!mgGuild(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!mgGuild(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const ch = i.options.getChannel("channel", true) as TextChannel;
       setGuild(guildId, { logChannel: ch.id });
       await logSetup(guildId, "Log Channel Set", `<@${i.user.id}> set the log channel to <#${ch.id}>`);
@@ -386,7 +387,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── taglogset ────────────────────────────────────────────────────────────
     case "taglogset": {
-      if (!mgGuild(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!mgGuild(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const ch = i.options.getChannel("channel", true) as TextChannel;
       setGuild(guildId, { tagLogChannel: ch.id });
       await logSetup(guildId, "Tag Log Channel Set", `<@${i.user.id}> set the tag log channel to <#${ch.id}>`);
@@ -395,7 +396,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── botlogset ────────────────────────────────────────────────────────────
     case "botlogset": {
-      if (!admin(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!admin(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const ch = i.options.getChannel("channel", true) as TextChannel;
       setGuild(guildId, { botLogChannel: ch.id });
       await logInfo(guildId, "Bot Log Channel Set",
@@ -406,7 +407,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── vset ─────────────────────────────────────────────────────────────────
     case "vset": {
-      if (!mgGuild(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!mgGuild(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const role = i.options.getRole("role", true);
       setGuild(guildId, { verificationRole: role.id });
       await logSetup(guildId, "Verification Role Set", `<@${i.user.id}> set the verification role to <@&${role.id}>`);
@@ -415,9 +416,9 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── gid ──────────────────────────────────────────────────────────────────
     case "gid": {
-      if (!mgGuild(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!mgGuild(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const groupId = i.options.getString("groupid", true).trim();
-      if (isNaN(Number(groupId))) return i.reply({ content: "please provide a valid Roblox group id", ephemeral: true });
+      if (isNaN(Number(groupId))) return i.reply({ content: "need a valid Roblox group id", ephemeral: true });
       setGuild(guildId, { groupId });
       await logSetup(guildId, "Group ID Set", `<@${i.user.id}> set the group ID to \`${groupId}\``);
       return i.reply({ content: `group id set to \`${groupId}\`` });
@@ -425,7 +426,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── prefix ───────────────────────────────────────────────────────────────
     case "prefix": {
-      if (!admin(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!admin(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const newPrefix = i.options.getString("prefix", true);
       if (newPrefix.length > 5) return i.reply({ content: "keep it under 5 characters", ephemeral: true });
       setGuild(guildId, { prefix: newPrefix });
@@ -435,7 +436,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── wl ───────────────────────────────────────────────────────────────────
     case "wl": {
-      if (!admin(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!admin(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const sub = i.options.getSubcommand();
       if (sub === "bot") {
         const t      = i.options.getUser("user", true);
@@ -463,7 +464,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── wlrole ───────────────────────────────────────────────────────────────
     case "wlrole": {
-      if (!mgGuild(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!mgGuild(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const role    = i.options.getRole("role", true);
       const cmdName = i.options.getString("command")?.toLowerCase() ?? null;
       const s       = getGuild(guildId);
@@ -486,7 +487,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── wlp ──────────────────────────────────────────────────────────────────
     case "wlp": {
-      if (!admin(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!admin(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const role = i.options.getRole("role", true);
       const s    = getGuild(guildId);
       if (s.pointsRole === role.id) return i.reply({ content: `<@&${role.id}> already manages points`, ephemeral: true });
@@ -497,7 +498,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── tmr ──────────────────────────────────────────────────────────────────
     case "tmr": {
-      if (!admin(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!admin(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const role = i.options.getRole("role", true);
       setGuild(guildId, { tagManagerRole: role.id });
       await logSetup(guildId, "Tag Manager Role Set", `<@${i.user.id}> set the tag manager role to <@&${role.id}>`);
@@ -506,7 +507,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── vmr ──────────────────────────────────────────────────────────────────
     case "vmr": {
-      if (!admin(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!admin(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const sub  = i.options.getSubcommand();
       const role = i.options.getRole("role");
       const s    = getGuild(guildId);
@@ -517,11 +518,11 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
           ...(s.verificationManagerRole ? [s.verificationManagerRole] : []),
         ];
         if (roles.length === 0) return i.reply({ content: "no verification manager roles configured yet", ephemeral: true });
-        return i.reply({ embeds: [{ color: WHITE, title: "verification manager roles", description: roles.map((id) => `<@&${id}>`).join("\n"), footer: { text: i.guild?.name ?? "bot" }, timestamp: ts() }] });
+        return i.reply({ embeds: [{ color: WHITE, description: `${SEP}\n${roles.map((id) => `  <@&${id}>`).join("\n")}\n${SEP}`, footer: { text: "◈  verification manager roles" }, timestamp: ts() }] });
       }
 
       if (sub === "remove") {
-        if (!role) return i.reply({ content: "please select a role to remove", ephemeral: true });
+        if (!role) return i.reply({ content: "select a role to remove", ephemeral: true });
         const current = s.verificationManagerRoles ?? [];
         if (!current.includes(role.id)) return i.reply({ content: `<@&${role.id}> isn't in the VMR list`, ephemeral: true });
         setGuild(guildId, { verificationManagerRoles: current.filter((id) => id !== role.id) });
@@ -530,7 +531,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
       }
 
       // sub === "add"
-      if (!role) return i.reply({ content: "please select a role to add", ephemeral: true });
+      if (!role) return i.reply({ content: "select a role to add", ephemeral: true });
       const current = s.verificationManagerRoles ?? [];
       if (current.includes(role.id)) return i.reply({ content: `<@&${role.id}> is already a verification manager role`, ephemeral: true });
       current.push(role.id);
@@ -541,7 +542,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── psr ──────────────────────────────────────────────────────────────────
     case "psr": {
-      if (!admin(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!admin(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const role = i.options.getRole("role", true);
       setGuild(guildId, { pointsSupportRole: role.id });
       await logSetup(guildId, "Points Support Role Set", `<@${i.user.id}> set the points support role to <@&${role.id}>`);
@@ -550,7 +551,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── whitelisted ──────────────────────────────────────────────────────────
     case "whitelisted": {
-      if (!admin(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!admin(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const wlData       = getWhitelist();
       const s            = getGuild(guildId);
       const lines: string[] = [];
@@ -575,7 +576,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── rankup ───────────────────────────────────────────────────────────────
     case "rankup": {
-      if (!hasFullAccess(i, "rankup")) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!hasFullAccess(i, "rankup")) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const target = i.options.getUser("user", true);
       const amount = i.options.getInteger("amount") ?? 1;
       await i.deferReply();
@@ -589,12 +590,12 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
         `<@${i.user.id}> gave **+${amount}** to <@${target.id}>`,
         [{ name: "New Total", value: `${pts[target.id]} pts`, inline: true }],
       );
-      return i.editReply({ embeds: [{ color: WHITE, description: `+**${amount}** to <@${target.id}> — **${pts[target.id]}** pt${pts[target.id] !== 1 ? "s" : ""} total${promotionNote}`, footer: { text: `given by ${i.user.username}` }, timestamp: ts() }] });
+      return i.editReply({ embeds: [{ color: GREEN, description: `${SEP}\n  +**${amount}** to <@${target.id}>\n  total  ·  **${pts[target.id]}** pt${pts[target.id] !== 1 ? "s" : ""}${promotionNote ? `\n  ${promotionNote.trim()}` : ""}\n${SEP}`, footer: { text: `◈  points  ·  given by ${i.user.username}` }, timestamp: ts() }] });
     }
 
     // ── removepoints ─────────────────────────────────────────────────────────
     case "removepoints": {
-      if (!hasFullAccess(i, "remove")) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!hasFullAccess(i, "remove")) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const target = i.options.getUser("user", true);
       const amount = i.options.getInteger("amount") ?? 1;
       await i.deferReply();
@@ -608,20 +609,20 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
         `<@${i.user.id}> removed **-${amount}** from <@${target.id}>`,
         [{ name: "New Total", value: `${pts[target.id]} pts`, inline: true }],
       );
-      return i.editReply({ embeds: [{ color: WHITE, description: `-**${amount}** from <@${target.id}> — **${pts[target.id]}** pt${pts[target.id] !== 1 ? "s" : ""} total${demotionNote}`, footer: { text: `removed by ${i.user.username}` }, timestamp: ts() }] });
+      return i.editReply({ embeds: [{ color: RED, description: `${SEP}\n  -**${amount}** from <@${target.id}>\n  total  ·  **${pts[target.id]}** pt${pts[target.id] !== 1 ? "s" : ""}${demotionNote ? `\n  ${demotionNote.trim()}` : ""}\n${SEP}`, footer: { text: `◈  points  ·  removed by ${i.user.username}` }, timestamp: ts() }] });
     }
 
     // ── resetall ─────────────────────────────────────────────────────────────
     case "resetall": {
       const m = getMember(i);
       const hasAccess = admin(i) || (m && memberHasPointsRole(m, guildId));
-      if (!hasAccess) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!hasAccess) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder().setCustomId("resetall_confirm").setLabel("reset all points").setStyle(ButtonStyle.Danger),
         new ButtonBuilder().setCustomId("resetall_cancel").setLabel("cancel").setStyle(ButtonStyle.Secondary),
       );
       await i.reply({
-        embeds: [{ color: WHITE, title: "reset all points", description: "this wipes **every** raid point in the server and can't be undone", footer: { text: `requested by ${i.user.username}` }, timestamp: ts() }],
+        embeds: [{ color: RED, description: `${SEP}\n  reset all points\n  this wipes every point and can't be undone\n${SEP}`, footer: { text: `◈  points  ·  requested by ${i.user.username}` }, timestamp: ts() }],
         components: [row],
         ephemeral: true,
       });
@@ -643,9 +644,9 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
             }
           }
           await logPoints(guildId, "Points Reset", `<@${i.user.id}> wiped all raid points and rank roles in this server`);
-          await btn.update({ embeds: [{ color: WHITE, title: "points wiped", description: "all raid points cleared and all rank roles removed", footer: { text: `done by ${i.user.username}` }, timestamp: ts() }], components: [] });
+          await btn.update({ embeds: [{ color: RED, description: `${SEP}\n  done  ·  all points and rank roles cleared\n${SEP}`, footer: { text: `◈  points  ·  done by ${i.user.username}` }, timestamp: ts() }], components: [] });
         } else {
-          await btn.update({ embeds: [{ color: WHITE, title: "cancelled", description: "nothing changed", timestamp: ts() }], components: [] });
+          await btn.update({ embeds: [{ color: WHITE, description: `${SEP}\n  cancelled  ·  nothing changed\n${SEP}`, footer: { text: "◈  points" }, timestamp: ts() }], components: [] });
         }
         collector.stop();
       });
@@ -664,13 +665,9 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
       setRegistered(i.user.id, robloxUser.name);
       return i.editReply({
         embeds: [{
-          color: WHITE,
-          title: "Registration Confirmed",
-          description: [
-            `**Discord:** ${i.user.username}`,
-            `**Roblox:** ${robloxUser.name}`,
-            "Your account has been linked. Run `/register` again at any time to update your username.",
-          ].join("\n"),
+          color: GREEN,
+          description: [SEP, `  discord  ·  ${i.user.username}`, `  roblox   ·  ${robloxUser.name}`, `  account linked — run /register again to update`, SEP].join("\n"),
+          footer: { text: "◈  register" },
           timestamp: ts(),
         }],
       });
@@ -681,13 +678,13 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
       const m      = getMember(i);
       if (target && target.id !== i.user.id) {
         if (!hasFullAccess(i, "check") && !(m && memberHasPSR(m, guildId))) {
-          return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+          return i.reply({ content: "you don't have permission to do that", ephemeral: true });
         }
       }
       const subject = target ?? i.user;
       const pts     = getPoints(guildId);
       const p       = pts[subject.id] ?? 0;
-      return i.reply({ embeds: [{ color: WHITE, description: `<@${subject.id}> — **${p}** pt${p !== 1 ? "s" : ""}`, footer: { text: i.guild?.name ?? "bot" }, timestamp: ts() }] });
+      return i.reply({ embeds: [{ color: WHITE, description: `${SEP}\n  <@${subject.id}>  ·  **${p}** pt${p !== 1 ? "s" : ""}\n${SEP}`, footer: { text: "◈  points" }, timestamp: ts() }] });
     }
 
     // ── leaderboard ──────────────────────────────────────────────────────────
@@ -703,7 +700,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── leaderboardpanel ─────────────────────────────────────────────────────
     case "leaderboardpanel": {
-      if (!mgGuild(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!mgGuild(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       await i.deferReply({ ephemeral: true });
       const ch    = (i.options.getChannel("channel", true)) as import("discord.js").TextChannel;
       const pts   = getPoints(guildId);
@@ -716,7 +713,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── raidpointspanel ──────────────────────────────────────────────────────
     case "raidpointspanel": {
-      if (!mgGuild(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!mgGuild(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       await i.deferReply({ ephemeral: true });
       const ch  = (i.options.getChannel("channel", true)) as import("discord.js").TextChannel;
       const btn = new ButtonBuilder()
@@ -725,10 +722,9 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
         .setStyle(ButtonStyle.Primary);
       await ch.send({
         embeds: [{
-          color: 0xffffff,
-          title: "Raid Points",
-          description: "Click the button below to submit a raid point request. You will be prompted to provide your Roblox username and a screenshot confirming your participation in the raid. All submissions are reviewed by staff before points are awarded.",
-          footer: { text: "submissions that cannot be verified will be denied" },
+          color: WHITE,
+          description: [`${SEP}`, `  raid points`, `${SEP}`, `  click the button below to submit a raid point request`, `  you'll need your roblox username and a screenshot as proof`, `  staff will review it before points are awarded`, `${SEP}`].join("\n"),
+          footer: { text: "◈  points  ·  unverified submissions will be denied" },
           timestamp: new Date().toISOString(),
         }],
         components: [new ActionRowBuilder<ButtonBuilder>().addComponents(btn)],
@@ -738,11 +734,11 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── addrank ──────────────────────────────────────────────────────────────
     case "addrank": {
-      if (!mgGuild(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!mgGuild(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const roleId   = i.options.getString("roleid", true).replace(/\D/g, "");
       const points   = i.options.getInteger("points", true);
       const rankName = i.options.getString("name") ?? null;
-      if (!roleId) return i.reply({ content: "please provide a valid role id", ephemeral: true });
+      if (!roleId) return i.reply({ content: "need a valid role id", ephemeral: true });
       const role = i.guild?.roles.cache.get(roleId);
       if (!role) return i.reply({ content: `couldn't find a role with id \`${roleId}\``, ephemeral: true });
       const s     = getGuild(guildId);
@@ -757,7 +753,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── removerank ───────────────────────────────────────────────────────────
     case "removerank": {
-      if (!mgGuild(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!mgGuild(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const roleId = i.options.getString("roleid", true).replace(/\D/g, "");
       const s      = getGuild(guildId);
       const ranks  = s.rankRoles ?? [];
@@ -774,13 +770,13 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
       const s     = getGuild(guildId);
       const ranks = (s.rankRoles ?? []).sort((a, b) => a.points - b.points);
       if (ranks.length === 0) return i.reply({ content: "no ranks configured yet — use `/addrank` to get started", ephemeral: true });
-      const lines = ranks.map((r, idx) => `\`${idx + 1}.\` <@&${r.roleId}> — **${r.points}** pts — \`${r.name}\``);
-      return i.reply({ embeds: [{ color: WHITE, title: `rank configuration (${ranks.length}/30)`, description: lines.join("\n"), footer: { text: i.guild?.name ?? "bot" }, timestamp: ts() }] });
+      const lines = ranks.map((r, idx) => `  \`${idx + 1}.\`  <@&${r.roleId}>  ·  **${r.points}** pts  ·  \`${r.name}\``);
+      return i.reply({ embeds: [{ color: WHITE, description: `${SEP}\n${lines.join("\n")}\n${SEP}`, footer: { text: `◈  ranks  ·  ${ranks.length}/30` }, timestamp: ts() }] });
     }
 
     // ── setstatus ────────────────────────────────────────────────────────────
     case "setstatus": {
-      if (!admin(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!admin(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const text = i.options.getString("text", true);
       if (text.toLowerCase() === "clear") {
         i.client.user?.setPresence({ activities: [] });
@@ -794,7 +790,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── setpresence ──────────────────────────────────────────────────────────
     case "setpresence": {
-      if (!admin(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!admin(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const status = i.options.getString("status", true) as "online" | "idle" | "dnd" | "invisible";
       i.client.user?.setPresence({ status });
       await logInfo(guildId, "Presence Updated", `<@${i.user.id}> set bot presence to **${status}**`);
@@ -803,7 +799,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── setavatar ────────────────────────────────────────────────────────────
     case "setavatar": {
-      if (!admin(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!admin(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const url        = i.options.getString("url") ?? i.options.getAttachment("image")?.url;
       if (!url) return i.reply({ content: "please provide a url or attach an image", ephemeral: true });
       await i.deferReply();
@@ -819,7 +815,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── setbanner ────────────────────────────────────────────────────────────
     case "setbanner": {
-      if (!admin(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!admin(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const url = i.options.getString("url") ?? i.options.getAttachment("image")?.url;
       if (!url) return i.reply({ content: "please provide a url or attach an image", ephemeral: true });
       await i.deferReply();
@@ -835,7 +831,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── setusername ──────────────────────────────────────────────────────────
     case "setusername": {
-      if (!admin(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!admin(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const name = i.options.getString("name", true);
       if (name.length < 2 || name.length > 32) return i.reply({ content: "name has to be between 2 and 32 characters", ephemeral: true });
       await i.deferReply();
@@ -850,7 +846,7 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── setnickname ──────────────────────────────────────────────────────────
     case "setnickname": {
-      if (!admin(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!admin(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const nick = i.options.getString("name") ?? null;
       await i.deferReply();
       try {
@@ -870,20 +866,20 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
     // ── backup ───────────────────────────────────────────────────────────────
     case "backup": {
-      if (!isOwner(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!isOwner(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       await i.deferReply();
       const backup = createBackup();
       const buffer = Buffer.from(JSON.stringify(backup, null, 2), "utf8");
       await logInfo(guildId, "Backup Created", `<@${i.user.id}> created a data backup (${Object.keys(backup.files).length} files)`);
       return i.editReply({
-        embeds: [{ color: WHITE, description: `backed up **${Object.keys(backup.files).length}** files`, footer: { text: i.guild?.name ?? "bot" }, timestamp: ts() }],
+        embeds: [{ color: GREEN, description: `${SEP}\n  backup done  ·  **${Object.keys(backup.files).length}** files\n${SEP}`, footer: { text: "◈  backup" }, timestamp: ts() }],
         files: [new AttachmentBuilder(buffer, { name: `x2k-backup-${Date.now()}.json` })],
       });
     }
 
     // ── restore ──────────────────────────────────────────────────────────────
     case "restore": {
-      if (!admin(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!admin(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const attachment = i.options.getAttachment("file", true);
       if (!attachment.name.endsWith(".json")) return i.reply({ content: "attach a valid `.json` backup file", ephemeral: true });
       await i.deferReply();
@@ -896,12 +892,12 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
       if (!backup.files || typeof backup.files !== "object") return i.editReply({ content: "that doesn't look like a valid /curek backup" });
       const restored = restoreBackup(backup);
       await logInfo(guildId, "Backup Restored", `<@${i.user.id}> restored a backup (${restored} files)`);
-      return i.editReply({ embeds: [{ color: WHITE, description: `restored **${restored}** files`, footer: { text: i.guild?.name ?? "bot" }, timestamp: ts() }] });
+      return i.editReply({ embeds: [{ color: GREEN, description: `${SEP}\n  restore done  ·  **${restored}** files\n${SEP}`, footer: { text: "◈  backup" }, timestamp: ts() }] });
     }
 
     // ── blacklist ────────────────────────────────────────────────────────────
     case "blacklist": {
-      if (!admin(i)) return i.reply({ content: "you're not authorized to use that command", ephemeral: true });
+      if (!admin(i)) return i.reply({ content: "you don't have permission to do that", ephemeral: true });
       const sub = i.options.getSubcommand();
 
       if (sub === "add") {
@@ -919,14 +915,9 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
         ]);
         return i.reply({
           embeds: [{
-            color: 0xFF3B6B,
-            title: "user blacklisted",
-            description: [
-              `**Roblox:** \`${username}\``,
-              `**Reason:** ${reason}`,
-              `**Added by:** <@${i.user.id}>`,
-            ].join("\n"),
-            footer: { text: "/curek" },
+            color: RED,
+            description: [SEP, `  blacklisted  ·  \`${username}\``, `  reason  ·  ${reason}`, `  by  ·  <@${i.user.id}>`, SEP].join("\n"),
+            footer: { text: "◈  blacklist" },
             timestamp: ts(),
           }],
           ephemeral: true,
@@ -942,13 +933,9 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
         ]);
         return i.reply({
           embeds: [{
-            color: 0x57F287,
-            title: "user removed from blacklist",
-            description: [
-              `**Roblox:** \`${username}\``,
-              `**Removed by:** <@${i.user.id}>`,
-            ].join("\n"),
-            footer: { text: "/curek" },
+            color: GREEN,
+            description: [SEP, `  removed  ·  \`${username}\``, `  by  ·  <@${i.user.id}>`, SEP].join("\n"),
+            footer: { text: "◈  blacklist" },
             timestamp: ts(),
           }],
           ephemeral: true,
@@ -960,27 +947,15 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
         const entry = isBlacklisted(username);
         if (!entry) {
           return i.reply({
-            embeds: [{
-              color: 0x57F287,
-              title: "not blacklisted",
-              description: `\`${username}\` is not on the blacklist.`,
-              footer: { text: "/curek" },
-              timestamp: ts(),
-            }],
+            embeds: [{ color: GREEN, description: `${SEP}\n  \`${username}\`  is clean\n${SEP}`, footer: { text: "◈  blacklist" }, timestamp: ts() }],
             ephemeral: true,
           });
         }
         return i.reply({
           embeds: [{
-            color: 0xFF3B6B,
-            title: "blacklisted user",
-            description: [
-              `**Roblox:** \`${username}\``,
-              `**Reason:** ${entry.reason}`,
-              `**Blacklisted by:** <@${entry.addedById}>`,
-              `**Date:** <t:${Math.floor(entry.addedAt / 1000)}:D>`,
-            ].join("\n"),
-            footer: { text: "/curek" },
+            color: RED,
+            description: [SEP, `  \`${username}\`  is blacklisted`, SEP, `  reason  ·  ${entry.reason}`, `  by      ·  <@${entry.addedById}>`, `  date    ·  <t:${Math.floor(entry.addedAt / 1000)}:D>`, SEP].join("\n"),
+            footer: { text: "◈  blacklist" },
             timestamp: ts(),
           }],
           ephemeral: true,
@@ -992,37 +967,22 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
         const entries = Object.entries(bl);
         if (entries.length === 0) {
           return i.reply({
-            embeds: [{
-              color: 0x5865F2,
-              description: "The blacklist is empty.",
-              footer: { text: "/curek" },
-              timestamp: ts(),
-            }],
+            embeds: [{ color: WHITE, description: `${SEP}\n  blacklist is empty\n${SEP}`, footer: { text: "◈  blacklist" }, timestamp: ts() }],
             ephemeral: true,
           });
         }
         const lines = entries.map(([user, e]) =>
-          `\`${user}\` — ${e.reason} *(added by <@${e.addedById}> on <t:${Math.floor(e.addedAt / 1000)}:D>)*`,
+          `  \`${user}\`  ·  ${e.reason}  ·  <@${e.addedById}>`,
         );
         const pages: string[] = [];
-        for (let j = 0; j < lines.length; j += 15) pages.push(lines.slice(j, j + 15).join("\n"));
+        for (let j = 0; j < lines.length; j += 15) pages.push(`${SEP}\n${lines.slice(j, j + 15).join("\n")}\n${SEP}`);
         await i.reply({
-          embeds: [{
-            color: 0xFF3B6B,
-            title: `blacklist (${entries.length})`,
-            description: pages[0],
-            footer: { text: pages.length > 1 ? `page 1/${pages.length} • /curek` : "/curek" },
-            timestamp: ts(),
-          }],
+          embeds: [{ color: RED, description: pages[0], footer: { text: `◈  blacklist  ·  ${entries.length} entries${pages.length > 1 ? `  ·  page 1/${pages.length}` : ""}` }, timestamp: ts() }],
           ephemeral: true,
         });
         for (let p = 1; p < pages.length; p++) {
           await (i.channel as TextChannel)?.send({
-            embeds: [{
-              color: 0xFF3B6B,
-              description: pages[p],
-              footer: { text: `page ${p + 1}/${pages.length} • /curek` },
-            }],
+            embeds: [{ color: RED, description: pages[p], footer: { text: `◈  blacklist  ·  page ${p + 1}/${pages.length}` } }],
           });
         }
         return;
@@ -1042,45 +1002,41 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
         const raw = i.options.getString("vanity", true);
         const ok = addOppVanity(guildId, raw);
         const v = raw.toLowerCase().replace(/^\//, "");
-        if (!ok) return i.reply({ embeds: [{ color: RED, description: `**/${v}** is already marked as opp.` }], ephemeral: true });
+        if (!ok) return i.reply({ embeds: [{ color: RED, description: `${SEP}\n  **/${v}** is already on the opp list\n${SEP}`, footer: { text: "◈  vanity" } }], ephemeral: true });
         await logSetup(guildId, "Vanity Flagged as Opp", `<@${i.user.id}> flagged **/${v}** as an opp vanity.`);
-        return i.reply({ embeds: [{ color: 0x4f46e5, description: `**/${v}** added to the opp list. members repping it will be flagged.` }], ephemeral: true });
+        return i.reply({ embeds: [{ color: WHITE, description: `${SEP}\n  added  ·  **/${v}**\n  members repping it will be flagged\n${SEP}`, footer: { text: "◈  vanity" }, timestamp: ts() }], ephemeral: true });
       }
 
       if (sub === "unflagvanity") {
         const raw = i.options.getString("vanity", true);
         const ok = removeOppVanity(guildId, raw);
         const v = raw.toLowerCase().replace(/^\//, "");
-        if (!ok) return i.reply({ embeds: [{ color: RED, description: `**/${v}** is not on the opp list.` }], ephemeral: true });
-        return i.reply({ embeds: [{ color: GREEN, description: `**/${v}** removed from the opp list.` }], ephemeral: true });
+        if (!ok) return i.reply({ embeds: [{ color: RED, description: `${SEP}\n  **/${v}** isn't on the opp list\n${SEP}`, footer: { text: "◈  vanity" } }], ephemeral: true });
+        return i.reply({ embeds: [{ color: GREEN, description: `${SEP}\n  removed  ·  **/${v}**\n${SEP}`, footer: { text: "◈  vanity" }, timestamp: ts() }], ephemeral: true });
       }
 
       if (sub === "whitelist") {
         const raw = i.options.getString("vanity", true);
         const ok = addWhitelistedVanity(guildId, raw);
         const v = raw.toLowerCase().replace(/^\//, "");
-        if (!ok) return i.reply({ embeds: [{ color: RED, description: `**/${v}** is already whitelisted.` }], ephemeral: true });
-        return i.reply({ embeds: [{ color: GREEN, description: `**/${v}** added to the whitelist. members repping it will not be flagged.` }], ephemeral: true });
+        if (!ok) return i.reply({ embeds: [{ color: RED, description: `${SEP}\n  **/${v}** is already whitelisted\n${SEP}`, footer: { text: "◈  vanity" } }], ephemeral: true });
+        return i.reply({ embeds: [{ color: GREEN, description: `${SEP}\n  whitelisted  ·  **/${v}**\n  members repping it won't be flagged\n${SEP}`, footer: { text: "◈  vanity" }, timestamp: ts() }], ephemeral: true });
       }
 
       if (sub === "unwhitelist") {
         const raw = i.options.getString("vanity", true);
         const ok = removeWhitelistedVanity(guildId, raw);
         const v = raw.toLowerCase().replace(/^\//, "");
-        if (!ok) return i.reply({ embeds: [{ color: RED, description: `**/${v}** is not on the whitelist.` }], ephemeral: true });
-        return i.reply({ embeds: [{ color: GREEN, description: `**/${v}** removed from the whitelist.` }], ephemeral: true });
+        if (!ok) return i.reply({ embeds: [{ color: RED, description: `${SEP}\n  **/${v}** isn't whitelisted\n${SEP}`, footer: { text: "◈  vanity" } }], ephemeral: true });
+        return i.reply({ embeds: [{ color: GREEN, description: `${SEP}\n  removed from whitelist  ·  **/${v}**\n${SEP}`, footer: { text: "◈  vanity" }, timestamp: ts() }], ephemeral: true });
       }
 
       if (sub === "vanities") {
         const list = getWhitelistedVanities(guildId);
         if (list.length === 0)
-          return i.reply({ embeds: [{ color: WHITE, description: "no whitelisted vanities — use `/vanity whitelist` to add one." }], ephemeral: true });
+          return i.reply({ embeds: [{ color: WHITE, description: `${SEP}\n  no whitelisted vanities yet\n${SEP}`, footer: { text: "◈  vanity" } }], ephemeral: true });
         return i.reply({
-          embeds: [{
-            color: 0x4f46e5,
-            title: `whitelisted vanities (${list.length})`,
-            description: list.map(v => `/${v}`).join("\n"),
-          }],
+          embeds: [{ color: WHITE, description: `${SEP}\n${list.map(v => `  /${v}`).join("\n")}\n${SEP}`, footer: { text: `◈  vanity  ·  ${list.length} whitelisted` } }],
           ephemeral: true,
         });
       }
@@ -1088,13 +1044,9 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
       if (sub === "opplist") {
         const list = getOppVanities(guildId);
         if (list.length === 0)
-          return i.reply({ embeds: [{ color: WHITE, description: "no opp vanities — use `/vanity flag` to add one." }], ephemeral: true });
+          return i.reply({ embeds: [{ color: WHITE, description: `${SEP}\n  no opp vanities yet\n${SEP}`, footer: { text: "◈  vanity" } }], ephemeral: true });
         return i.reply({
-          embeds: [{
-            color: RED,
-            title: `opp vanities (${list.length})`,
-            description: list.map(v => `/${v}`).join("\n"),
-          }],
+          embeds: [{ color: RED, description: `${SEP}\n${list.map(v => `  /${v}`).join("\n")}\n${SEP}`, footer: { text: `◈  vanity  ·  ${list.length} opp` } }],
           ephemeral: true,
         });
       }
@@ -1103,14 +1055,10 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
         const flagged = getFlaggedMembers(guildId);
         const entries = Object.entries(flagged);
         if (entries.length === 0)
-          return i.reply({ embeds: [{ color: WHITE, description: "no members are currently flagged." }], ephemeral: true });
-        const lines = entries.map(([uid, info]) => `<@${uid}> — **/${info.vanity}** — <t:${Math.floor(info.flaggedAt / 1000)}:R>`);
+          return i.reply({ embeds: [{ color: WHITE, description: `${SEP}\n  no flagged members right now\n${SEP}`, footer: { text: "◈  vanity" } }], ephemeral: true });
+        const lines = entries.map(([uid, info]) => `  <@${uid}>  ·  /${info.vanity}  ·  <t:${Math.floor(info.flaggedAt / 1000)}:R>`);
         return i.reply({
-          embeds: [{
-            color: 0x4f46e5,
-            title: `flagged members (${entries.length})`,
-            description: lines.join("\n"),
-          }],
+          embeds: [{ color: RED, description: `${SEP}\n${lines.join("\n")}\n${SEP}`, footer: { text: `◈  vanity  ·  ${entries.length} flagged` } }],
           ephemeral: true,
         });
       }
@@ -1118,18 +1066,15 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
       if (sub === "unflag") {
         const target = i.options.getUser("user", true);
         const ok = unflagMember(guildId, target.id);
-        if (!ok) return i.reply({ embeds: [{ color: RED, description: `<@${target.id}> is not currently flagged.` }], ephemeral: true });
-        return i.reply({ embeds: [{ color: GREEN, description: `<@${target.id}> has been unflagged.` }], ephemeral: true });
+        if (!ok) return i.reply({ embeds: [{ color: RED, description: `${SEP}\n  <@${target.id}> isn't flagged\n${SEP}`, footer: { text: "◈  vanity" } }], ephemeral: true });
+        return i.reply({ embeds: [{ color: GREEN, description: `${SEP}\n  unflagged  ·  <@${target.id}>\n${SEP}`, footer: { text: "◈  vanity" }, timestamp: ts() }], ephemeral: true });
       }
 
       if (sub === "scan") {
         await i.deferReply({ ephemeral: true });
         const count = await scanAllMembers(i.client, guildId);
         return i.editReply({
-          embeds: [{
-            color: 0x4f46e5,
-            description: `scan complete — **${count}** new member(s) flagged.`,
-          }],
+          embeds: [{ color: WHITE, description: `${SEP}\n  scan done  ·  **${count}** new member${count !== 1 ? "s" : ""} flagged\n${SEP}`, footer: { text: "◈  vanity" }, timestamp: ts() }],
         });
       }
 
@@ -1164,23 +1109,25 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
         const tracks = getTracksForUser(i.user.id);
         if (tracks.length >= MAX_TRACKS) {
-          return i.editReply({ embeds: [{ color: RED, description: `you've reached the maximum of **${MAX_TRACKS}** tracked users. remove one first.` }] });
+          return i.editReply({ embeds: [{ color: RED, description: `${SEP}\n  you're at the limit  ·  remove someone first\n${SEP}`, footer: { text: "◈  tracker" } }] });
         }
 
         const user = await getUserByUsername(username);
         if (!user) {
-          return i.editReply({ embeds: [{ color: RED, description: `could not find a roblox user named **${username}**.` }] });
+          return i.editReply({ embeds: [{ color: RED, description: `${SEP}\n  no user found  ·  **${username}**\n${SEP}`, footer: { text: "◈  tracker" } }] });
         }
 
         const result = addTrack(i.user.id, user.id, user.name);
         if (result === "exists") {
-          return i.editReply({ embeds: [{ color: RED, description: `you're already tracking **${user.name}**.` }] });
+          return i.editReply({ embeds: [{ color: RED, description: `${SEP}\n  you're already tracking  ·  **${user.name}**\n${SEP}`, footer: { text: "◈  tracker" } }] });
         }
 
         return i.editReply({
           embeds: [{
             color: GREEN,
-            description: `now tracking **${user.name}** (ID: \`${user.id}\`).\nyou'll receive a DM when they join a roblox game.`,
+            description: `${SEP}\n  tracking  ·  **${user.name}**\n  you'll get a ping when they hop in a game\n${SEP}`,
+            footer: { text: "◈  tracker" },
+            timestamp: ts(),
           }],
         });
       }
@@ -1188,23 +1135,22 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
       if (sub === "remove") {
         const username = i.options.getString("username", true);
         const ok = removeTrack(i.user.id, username);
-        if (!ok) return i.reply({ embeds: [{ color: RED, description: `**${username}** was not found in your tracking list.` }], ephemeral: true });
-        return i.reply({ embeds: [{ color: GREEN, description: `stopped tracking **${username}**.` }], ephemeral: true });
+        if (!ok) return i.reply({ embeds: [{ color: RED, description: `${SEP}\n  **${username}** isn't in your list\n${SEP}`, footer: { text: "◈  tracker" } }], ephemeral: true });
+        return i.reply({ embeds: [{ color: GREEN, description: `${SEP}\n  done  ·  not tracking **${username}** anymore\n${SEP}`, footer: { text: "◈  tracker" }, timestamp: ts() }], ephemeral: true });
       }
 
       if (sub === "list") {
         const tracks = getTracksForUser(i.user.id);
         if (tracks.length === 0)
-          return i.reply({ embeds: [{ color: WHITE, description: "you're not tracking anyone. use `/track add <username>` to get started." }], ephemeral: true });
-        const lines = tracks.map((t, idx) =>
-          `\`${idx + 1}.\` **${t.robloxUsername}**${t.alertGame ? ` — filter: ${t.alertGame}` : ""}`
+          return i.reply({ embeds: [{ color: WHITE, description: `${SEP}\n  you're not tracking anyone yet  ·  try /track add\n${SEP}`, footer: { text: "◈  tracker" } }], ephemeral: true });
+        const lines = tracks.map((t) =>
+          `  **${t.robloxUsername}**${t.alertGame ? `  ·  ${t.alertGame}` : ""}`
         );
         return i.reply({
           embeds: [{
-            color: 0x4f46e5,
-            title: `your tracked users (${tracks.length}/${MAX_TRACKS})`,
-            description: lines.join("\n"),
-            footer: { text: "use /track check <username> to see their current status" },
+            color: WHITE,
+            description: `${SEP}\n${lines.join("\n")}\n${SEP}`,
+            footer: { text: `◈  tracker  ·  ${tracks.length} of ${MAX_TRACKS}` },
           }],
           ephemeral: true,
         });
@@ -1216,27 +1162,21 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
 
         const user = await getUserByUsername(username);
         if (!user) {
-          return i.editReply({ embeds: [{ color: RED, description: `no roblox user found with the username **${username}**.` }] });
+          return i.editReply({ embeds: [{ color: RED, description: `${SEP}\n  no user found  ·  **${username}**\n${SEP}`, footer: { text: "◈  tracker" } }] });
         }
 
         const presence = await getUserPresence(user.id);
         const avatar = await getUserAvatarUrl(user.id);
 
-        const statusMap: Record<number, string> = { 0: "offline", 1: "online (website)", 2: "in game", 3: "in studio" };
+        const statusMap: Record<number, string> = { 0: "offline", 1: "online", 2: "in a game", 3: "in studio" };
         const statusLabel = statusMap[presence?.userPresenceType ?? 0] ?? "unknown";
-
-        const fields: Array<{ name: string; value: string; inline?: boolean }> = [
-          { name: "Status", value: statusLabel, inline: true },
-          { name: "User ID", value: `\`${user.id}\``, inline: true },
-        ];
 
         let joinUrl: string | null = null;
         let hasSpecificServer = false;
+        let gameName: string | null = null;
 
         if (presence?.userPresenceType === 2 && presence.placeId) {
-          const gameName = await getGameName(presence.placeId);
-          fields.push({ name: "Current Game", value: gameName, inline: false });
-
+          gameName = await getGameName(presence.placeId);
           const rawGameId = presence.gameId ?? null;
           hasSpecificServer = rawGameId !== null;
           joinUrl = hasSpecificServer
@@ -1244,24 +1184,30 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
             : `https://www.roblox.com/games/${presence.placeId}`;
         }
 
-        if (presence?.lastOnline) {
-          const d = new Date(presence.lastOnline);
-          fields.push({ name: "Last Online", value: `<t:${Math.floor(d.getTime() / 1000)}:R>`, inline: true });
-        }
+        const lastSeen = presence?.lastOnline
+          ? `<t:${Math.floor(new Date(presence.lastOnline).getTime() / 1000)}:R>`
+          : "unknown";
+
+        const lines = [
+          `  status    ${statusLabel}`,
+          gameName ? `  game      \`${gameName}\`` : null,
+          `  id        \`${user.id}\``,
+          `  last seen  ${lastSeen}`,
+        ].filter(Boolean).join("\n");
 
         const embed = {
-          color: 0x4f46e5,
-          title: `${user.displayName} (@${user.name})`,
+          color: WHITE,
+          author: { name: `${user.name}  ·  roblox`, icon_url: avatar ?? undefined },
+          description: `${SEP}\n${lines}\n${SEP}`,
           thumbnail: avatar ? { url: avatar } : undefined,
-          fields,
-          footer: { text: "roblox tracker" },
+          footer: { text: "◈  tracker" },
           timestamp: ts(),
         };
 
         const components = joinUrl
           ? [new ActionRowBuilder<ButtonBuilder>().addComponents(
               new ButtonBuilder()
-                .setLabel(hasSpecificServer ? "Join Server" : "Open Game")
+                .setLabel(hasSpecificServer ? "join server" : "open game")
                 .setStyle(hasSpecificServer ? ButtonStyle.Success : ButtonStyle.Secondary)
                 .setURL(joinUrl)
             )]
@@ -1276,13 +1222,13 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
         const tracks = getTracksForUser(i.user.id);
         const match = tracks.find(t => t.robloxUsername.toLowerCase() === username.toLowerCase());
         if (!match) {
-          return i.reply({ embeds: [{ color: RED, description: `**${username}** is not in your tracking list.` }], ephemeral: true });
+          return i.reply({ embeds: [{ color: RED, description: `${SEP}\n  **${username}** isn't in your tracking list\n${SEP}`, footer: { text: "◈  tracker" } }], ephemeral: true });
         }
         setTrackAlert(i.user.id, match.robloxUserId, game);
         if (game) {
-          return i.reply({ embeds: [{ color: GREEN, description: `alert filter set for **${username}** — you'll only be notified when they join a game matching **"${game}"**.` }], ephemeral: true });
+          return i.reply({ embeds: [{ color: GREEN, description: `${SEP}\n  filter set  ·  **${username}**\n  only notifying for  ·  \`${game}\`\n${SEP}`, footer: { text: "◈  tracker" }, timestamp: ts() }], ephemeral: true });
         }
-        return i.reply({ embeds: [{ color: GREEN, description: `alert filter cleared for **${username}** — you'll now be notified for any game.` }], ephemeral: true });
+        return i.reply({ embeds: [{ color: GREEN, description: `${SEP}\n  filter cleared  ·  **${username}**\n  you'll get alerts for any game they join\n${SEP}`, footer: { text: "◈  tracker" }, timestamp: ts() }], ephemeral: true });
       }
 
       if (sub === "settings") {
@@ -1292,14 +1238,15 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
         const notifyChannelId = getNotifyChannelId(i.user.id);
         return i.reply({
           embeds: [{
-            color: 0x4f46e5,
-            title: "tracker settings",
-            fields: [
-              { name: "DM on Game Join", value: current ? "enabled" : "disabled", inline: true },
-              { name: "Alert Destination", value: notifyChannelId ? `<#${notifyChannelId}>` : "direct messages", inline: true },
-              { name: "Max Tracks", value: `${MAX_TRACKS}`, inline: true },
-            ],
-            footer: { text: "use /track notify to change where alerts are sent" },
+            color: WHITE,
+            description: [
+              SEP,
+              `  dms          ${current ? "on" : "off"}`,
+              `  alerts go to  ${notifyChannelId ? `<#${notifyChannelId}>` : "your dms"}`,
+              `  max tracks    ${MAX_TRACKS}`,
+              SEP,
+            ].join("\n"),
+            footer: { text: "◈  tracker  ·  use /track notify to change where alerts go" },
           }],
           ephemeral: true,
         });
@@ -1312,7 +1259,9 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
           return i.reply({
             embeds: [{
               color: GREEN,
-              description: `tracker alerts will now be posted in <#${channel.id}> instead of your DMs.`,
+              description: `${SEP}\n  alerts going to  ·  <#${channel.id}>\n${SEP}`,
+              footer: { text: "◈  tracker" },
+              timestamp: ts(),
             }],
             ephemeral: true,
           });
@@ -1321,7 +1270,9 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
           return i.reply({
             embeds: [{
               color: GREEN,
-              description: "tracker alerts will now be sent to your DMs.",
+              description: `${SEP}\n  alerts going to  ·  your dms\n${SEP}`,
+              footer: { text: "◈  tracker" },
+              timestamp: ts(),
             }],
             ephemeral: true,
           });

@@ -61,7 +61,7 @@ export async function handleButton(interaction: Interaction) {
 
       if (!robloxUsername) {
         return modalInteraction.reply({
-          content: "please enter a roblox username.",
+          content: "enter your roblox username.",
           ephemeral: true,
         });
       }
@@ -78,13 +78,13 @@ export async function handleButton(interaction: Interaction) {
 
       if (!robloxUsername) {
         return modalInteraction.reply({
-          content: "please enter your roblox username.",
+          content: "enter your roblox username.",
           ephemeral: true,
         });
       }
       if (!proofUrl) {
         return modalInteraction.reply({
-          content: "please provide a screenshot url.",
+          content: "drop a screenshot url.",
           ephemeral: true,
         });
       }
@@ -101,7 +101,7 @@ export async function handleButton(interaction: Interaction) {
 
       if (!robloxUsername) {
         return modalInteraction.reply({
-          content: "please enter a roblox username.",
+          content: "enter your roblox username.",
           ephemeral: true,
         });
       }
@@ -278,7 +278,7 @@ export async function handleButton(interaction: Interaction) {
 
       await buttonInteraction.reply({
         embeds: [{
-          color: 0x4f46e5,
+          color: 0x6366f1,
           description: [
             `### accepted into group`,
             `**User:** <@${ticket.userId}>`,
@@ -298,7 +298,7 @@ export async function handleButton(interaction: Interaction) {
         if (logChannel) {
           await logChannel.send({
             embeds: [{
-              color: 0x4f46e5,
+              color: 0x6366f1,
               title: "Group Accept",
               description: [
                 `**User:** <@${ticket.userId}>`,
@@ -375,7 +375,7 @@ export async function handleButton(interaction: Interaction) {
 
       await buttonInteraction.reply({
         embeds: [{
-          color: 0x10b981,
+          color: 0x34d399,
           description: [
             `### verified`,
             `**User:** <@${ticket.userId}>`,
@@ -389,12 +389,12 @@ export async function handleButton(interaction: Interaction) {
 
       await targetMember.user.send({
         embeds: [{
-          color: 0x10b981,
-          title: "you've been verified",
+          color: 0x34d399,
+          title: "verified",
           description: [
-            `You've been **verified** in **${guild.name}**${ticket.robloxUsername ? ` as \`${ticket.robloxUsername}\`` : ""}.`,
+            `you're verified in **${guild.name}**${ticket.robloxUsername ? ` as \`${ticket.robloxUsername}\`` : ""}.`,
             ``,
-            `You now have access to the server.`,
+            `you should have access now.`,
           ].join("\n"),
           footer: { text: "verification system" },
           timestamp: new Date().toISOString(),

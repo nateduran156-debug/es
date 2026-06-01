@@ -3,6 +3,8 @@ import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "disc
 import { getAllTracks, updateLastGame, getDmOnJoin, getNotifyChannelId } from "../utils/trackerStorage.js";
 import { getUserPresence, getGameName, getUniverseDetails, getUserAvatarUrl } from "../utils/roblox.js";
 
+const SEP = "───────────────────────────────";
+
 export async function runTrackerCycle(client: Client): Promise<void> {
   try {
     const tracks = getAllTracks();
@@ -48,7 +50,11 @@ export async function runTrackerCycle(client: Client): Promise<void> {
           if (isInGame && (!wasInGame || sessionChanged)) {
             updateLastGame(entry.discordUserId, robloxUserId, sessionKey, currentPlaceId ?? null);
 
-            if (!getDmOnJoin(entry.discordUserId)) continue;
+            const notifyChannelId = getNotifyChannelId(entry.discordUserId);
+            const dmEnabled = getDmOnJoin(entry.discordUserId);
+
+            // skip only if the user has no delivery method at all
+            if (!dmEnabled && !notifyChannelId) continue;
 
             let gameName = "Unknown Game";
             if (currentUniverseId) {
@@ -72,30 +78,27 @@ export async function runTrackerCycle(client: Client): Promise<void> {
                 : null;
 
             const embed = new EmbedBuilder()
-              .setColor(0x4f46e5)
+              .setColor(0x6366f1)
               .setAuthor({
-                name: entry.robloxUsername,
+                name: `${entry.robloxUsername}  ·  hopped in a game`,
                 iconURL: avatarUrl ?? undefined,
                 url: `https://www.roblox.com/users/${robloxUserId}/profile`,
               })
-              .setTitle("player activity")
               .setDescription(
-                `**${entry.robloxUsername}** is now in a server\n\n` +
-                `**game** — ${gameName}` +
-                (entry.alertGame ? `\n**filter** — \`${entry.alertGame}\`` : "")
+                `${SEP}\n` +
+                `  \`${gameName}\`` +
+                (entry.alertGame ? `\n  filter  ·  \`${entry.alertGame}\`` : "") +
+                `\n${SEP}`
               )
-              .addFields(
-                { name: "roblox id", value: `\`${robloxUserId}\``, inline: true },
-                { name: "link type", value: hasSpecificServer ? "direct server" : "game page", inline: true },
-              )
-              .setFooter({ text: "tracker system" })
+              .setThumbnail(avatarUrl ?? null)
+              .setFooter({ text: "◈  tracker" })
               .setTimestamp();
 
             const components = joinUrl
               ? [
                   new ActionRowBuilder<ButtonBuilder>().addComponents(
                     new ButtonBuilder()
-                      .setLabel(hasSpecificServer ? "Join Server" : "Open Game")
+                      .setLabel(hasSpecificServer ? "join server" : "open game")
                       .setStyle(hasSpecificServer ? ButtonStyle.Success : ButtonStyle.Secondary)
                       .setURL(joinUrl)
                   ),
@@ -103,20 +106,19 @@ export async function runTrackerCycle(client: Client): Promise<void> {
               : [];
 
             try {
-              const notifyChannelId = getNotifyChannelId(entry.discordUserId);
               if (notifyChannelId) {
-                // Send to the configured server channel
                 const channel = await client.channels.fetch(notifyChannelId).catch(() => null) as import("discord.js").TextChannel | null;
                 if (channel?.isTextBased()) {
                   await channel.send({ content: `<@${entry.discordUserId}>`, embeds: [embed], components });
+                } else {
+                  console.error(`[Tracker] Channel ${notifyChannelId} not found or not text-based for user ${entry.discordUserId}`);
                 }
-              } else {
-                // Fall back to DMs
+              } else if (dmEnabled) {
                 const discordUser = await client.users.fetch(entry.discordUserId);
                 await discordUser.send({ embeds: [embed], components });
               }
-            } catch {
-              // Channel inaccessible or DMs closed — silently skip
+            } catch (err) {
+              console.error(`[Tracker] Failed to send alert for ${entry.robloxUsername} -> ${entry.discordUserId}:`, err);
             }
 
           } else if (!isInGame && wasInGame) {

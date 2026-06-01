@@ -60,9 +60,10 @@ async function kickDeniedUser(robloxUsername: string, tag: string): Promise<void
   await kickFromGroup(groupId, user.id).catch(() => {});
 }
 
-const WHITE = 0x4f46e5;
-const GREEN = 0x10b981;
-const RED   = 0xff2d55;
+const WHITE = 0x6366f1;
+const GREEN = 0x34d399;
+const RED   = 0xf43f5e;
+const SEP   = "───────────────────────────────";
 
 const TAG_OPTIONS = [
   { label: "Sharingan Tag", value: "sharingan tag", description: "sharingan tag request" },
@@ -128,7 +129,7 @@ export async function sendTicketPanel(
       ]);
 
     await channel.send({
-      embeds: [{ color: WHITE, title: "support tickets", description: "select a category below to open a ticket.", timestamp: getTimestamp() }],
+      embeds: [{ color: WHITE, description: [`${SEP}`, `  support tickets`, `${SEP}`, `  select a category below to open a ticket`, `${SEP}`].join("\n"), footer: { text: "◈  x2k" }, timestamp: getTimestamp() }],
       components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu)],
     });
   } else if (type === "tag") {
@@ -138,7 +139,7 @@ export async function sendTicketPanel(
       .setStyle(ButtonStyle.Secondary);
 
     await channel.send({
-      embeds: [{ color: WHITE, title: "support tickets", description: "click the button below to open a tag ticket.", timestamp: getTimestamp() }],
+      embeds: [{ color: WHITE, description: [`${SEP}`, `  tag tickets`, `${SEP}`, `  click the button below to open a tag ticket`, `${SEP}`].join("\n"), footer: { text: "◈  tag system" }, timestamp: getTimestamp() }],
       components: [new ActionRowBuilder<ButtonBuilder>().addComponents(button)],
     });
   } else {
@@ -148,7 +149,7 @@ export async function sendTicketPanel(
       .setStyle(ButtonStyle.Secondary);
 
     await channel.send({
-      embeds: [{ color: WHITE, title: "verification", description: "click the button below to link your roblox account and get verified.", timestamp: getTimestamp() }],
+      embeds: [{ color: WHITE, description: [`${SEP}`, `  verification`, `${SEP}`, `  click the button below to link your roblox account and get verified`, `${SEP}`].join("\n"), footer: { text: "◈  verification system" }, timestamp: getTimestamp() }],
       components: [new ActionRowBuilder<ButtonBuilder>().addComponents(button)],
     });
   }
@@ -278,16 +279,15 @@ export async function openVerificationTicket(
     embeds: [
       {
         color: WHITE,
-        title: "verification ticket",
         description: [
-          `opened by <@${modalInteraction.user.id}>`,
-          ``,
-          `**roblox username** — \`${robloxUsername}\``,
-          `**status** — pending review`,
-          ``,
-          `a staff member will verify you shortly.`,
+          SEP,
+          `  user      <@${modalInteraction.user.id}>`,
+          `  roblox    \`${robloxUsername}\``,
+          `  status    waiting on staff`,
+          SEP,
+          `  someone will get to you soon.`,
         ].join("\n"),
-        footer: { text: "verification system" },
+        footer: { text: "◈  verification system" },
         timestamp: getTimestamp(),
       },
     ],
@@ -324,15 +324,16 @@ export async function openVerificationTicket(
     await ticketChannel.send({
       embeds: [{
         color: RED,
-        title: "blacklisted user",
         description: [
-          `**<@${modalInteraction.user.id}>** (\`${robloxUsername}\`) is on the blacklist.`,
-          ``,
-          `**reason** — ${blEntry.reason || "no reason provided"}`,
-          `**added by** — <@${blEntry.addedById}>`,
-          `**date** — <t:${Math.floor(blEntry.addedAt / 1000)}:D>`,
+          SEP,
+          `  \`${robloxUsername}\`  is blacklisted`,
+          SEP,
+          `  reason    ${blEntry.reason || "no reason given"}`,
+          `  by        <@${blEntry.addedById}>`,
+          `  date      <t:${Math.floor(blEntry.addedAt / 1000)}:D>`,
+          SEP,
         ].join("\n"),
-        footer: { text: "verification system" },
+        footer: { text: "◈  verification system" },
         timestamp: getTimestamp(),
       }],
     }).catch(() => {});
@@ -412,8 +413,8 @@ export async function openTagChannel(interaction: Interaction) {
     embeds: [
       {
         color: WHITE,
-        title: "tag ticket",
-        description: "pick a tag from the dropdown below.",
+        description: [`${SEP}`, `  pick a tag from the dropdown below`, `${SEP}`].join("\n"),
+        footer: { text: "◈  tag system" },
         timestamp: getTimestamp(),
       },
     ],
@@ -514,16 +515,16 @@ export async function postTagReviewEmbed(
     embeds: [
       {
         color: WHITE,
-        title: "tag request — pending review",
         description: [
-          `**User:** <@${interaction.user.id}>`,
-          `**Roblox:** \`${robloxUsername}\``,
-          `**Tag:** \`${tag}\``,
-          ``,
-          `This request is waiting for a tag manager to review it.`,
-          `Press **Approve** to accept them into the group and assign the tag, or **Deny** to close the ticket without taking any action.`,
+          SEP,
+          `  pending review`,
+          SEP,
+          `  user    <@${interaction.user.id}>`,
+          `  roblox  \`${robloxUsername}\``,
+          `  tag     \`${tag}\``,
+          SEP,
         ].join("\n"),
-        footer: { text: "tag system" },
+        footer: { text: "◈  tag system" },
         timestamp: getTimestamp(),
       },
     ],
@@ -590,17 +591,19 @@ export async function handleTagApprove(
     await interaction.editReply({
       embeds: [
         {
-          color: WHITE,
-          title: "tag approval failed",
+          color: RED,
           description: [
-            `**User:** <@${ticket.userId}>`,
-            `**Roblox:** \`${robloxUsername}\``,
-            `**Tag:** \`${tag}\``,
-            ``,
-            `Something went wrong on Roblox's end: ${result.reason}`,
-            `Check the tag group and try again, or deny the request.`,
+            SEP,
+            `  roblox-side error`,
+            SEP,
+            `  user    <@${ticket.userId}>`,
+            `  roblox  \`${robloxUsername}\``,
+            `  tag     \`${tag}\``,
+            `  error   ${result.reason}`,
+            SEP,
+            `  check the tag group and try again, or deny the request`,
           ].join("\n"),
-          footer: { text: "tag system" },
+          footer: { text: "◈  tag system" },
           timestamp: getTimestamp(),
         },
       ],
@@ -620,17 +623,18 @@ export async function handleTagApprove(
   await interaction.editReply({
     embeds: [
       {
-        color: WHITE,
-        title: "tag request approved",
+        color: GREEN,
         description: [
-          `**User:** <@${ticket.userId}>`,
-          `**Roblox:** \`${robloxUsername}\``,
-          `**Tag:** \`${tag}\``,
-          ``,
-          `They've been accepted into the group and assigned the tag on Roblox.`,
-          `Approved by <@${interaction.user.id}>.`,
+          SEP,
+          `  approved`,
+          SEP,
+          `  user    <@${ticket.userId}>`,
+          `  roblox  \`${robloxUsername}\``,
+          `  tag     \`${tag}\``,
+          `  by      <@${interaction.user.id}>`,
+          SEP,
         ].join("\n"),
-        footer: { text: "tag system" },
+        footer: { text: "◈  tag system" },
         timestamp: getTimestamp(),
       },
     ],
@@ -652,17 +656,16 @@ export async function handleTagApprove(
     await approvedUser.send({
       embeds: [{
         color: GREEN,
-        title: "tag request approved",
         description: [
-          `Your **${tag}** tag request has been approved.`,
-          ``,
-          `**roblox** — \`${robloxUsername}\``,
-          `**tag** — \`${tag}\``,
-          `**approved by** — <@${interaction.user.id}>`,
-          ``,
-          `You have been ranked in the Roblox group.`,
+          SEP,
+          `  tag approved  ·  \`${tag}\``,
+          SEP,
+          `  roblox    \`${robloxUsername}\``,
+          `  by        <@${interaction.user.id}>`,
+          SEP,
+          `  you've been ranked in the group, go check your roles.`,
         ].join("\n"),
-        footer: { text: "tag system" },
+        footer: { text: "◈  tag system" },
         timestamp: getTimestamp(),
       }],
     }).catch(() => {});
@@ -707,17 +710,18 @@ export async function handleTagDeny(
   await interaction.reply({
     embeds: [
       {
-        color: WHITE,
-        title: "tag request denied",
+        color: RED,
         description: [
-          `**User:** <@${ticket.userId}>`,
-          `**Roblox:** \`${ticket.robloxUsername ?? "unknown"}\``,
-          `**Tag:** \`${ticket.requestedTag ?? "unknown"}\``,
-          ``,
-          `This request has been denied by <@${interaction.user.id}>.`,
-          `No changes were made on Roblox.`,
+          SEP,
+          `  denied`,
+          SEP,
+          `  user    <@${ticket.userId}>`,
+          `  roblox  \`${ticket.robloxUsername ?? "unknown"}\``,
+          `  tag     \`${ticket.requestedTag ?? "unknown"}\``,
+          `  by      <@${interaction.user.id}>`,
+          SEP,
         ].join("\n"),
-        footer: { text: "tag system" },
+        footer: { text: "◈  tag system" },
         timestamp: getTimestamp(),
       },
     ],
@@ -738,18 +742,18 @@ export async function handleTagDeny(
   if (deniedUser) {
     await deniedUser.send({
       embeds: [{
-        color: 0xED4245,
-        title: "tag request denied",
+        color: RED,
         description: [
-          `Your **${ticket.requestedTag ?? "tag"}** request has been **denied**.`,
-          ``,
-          `**Roblox:** \`${ticket.robloxUsername ?? "unknown"}\``,
-          `**Tag:** \`${ticket.requestedTag ?? "unknown"}\``,
-          `**Denied by:** <@${interaction.user.id}>`,
-          ``,
-          `No changes were made to your Roblox account. You can open a new ticket if you have questions.`,
+          SEP,
+          `  tag request denied`,
+          SEP,
+          `  roblox  \`${ticket.robloxUsername ?? "unknown"}\``,
+          `  tag     \`${ticket.requestedTag ?? "unknown"}\``,
+          `  by      <@${interaction.user.id}>`,
+          SEP,
+          `  nothing was changed on your account. open a new ticket if you have questions.`,
         ].join("\n"),
-        footer: { text: "/curek" },
+        footer: { text: "◈  tag system" },
         timestamp: getTimestamp(),
       }],
     }).catch(() => {});
@@ -943,39 +947,40 @@ async function runGroupCheck(
 
   const groupListText = groupListLines.join("\n");
 
+  const groupLink = `https://www.roblox.com/communities/${requiredGroupId}`;
+  const mainGroupLine = isInMainGroup
+    ? `  main group  ·  in`
+    : `  main group  ·  not in  ·  [join here](${groupLink})`;
+
   const embeds: object[] = [
     {
       color: statusColor,
-      description: `**${user.name}**\n\n**groups**\n${groupListText}`,
-      footer: { text: "verification system" },
+      description: [
+        SEP,
+        `  **${user.name}**`,
+        SEP,
+        mainGroupLine,
+        flaggedHits.length > 0
+          ? `  flagged groups  ·  ${flaggedHits.length} hit${flaggedHits.length !== 1 ? "s" : ""}`
+          : `  flagged groups  ·  none`,
+        SEP,
+        ...groupListLines.map(l => `  ${l}`),
+        SEP,
+      ].join("\n"),
+      footer: { text: "◈  verification system" },
       timestamp: getTimestamp(),
     },
   ];
 
   if (flaggedHits.length > 0) {
     const flaggedLines = flaggedHits
-      .map((entry) => `• [${entry.group.name}](https://www.roblox.com/groups/${entry.group.id})`)
+      .map((entry) => `  • [${entry.group.name}](https://www.roblox.com/groups/${entry.group.id})`)
       .join("\n");
 
     embeds.push({
       color: RED,
-      description: `**${user.name}** is in flagged groups — ask them to leave:\n\n${flaggedLines}`,
-      timestamp: getTimestamp(),
-    });
-  }
-
-  const groupLink = `https://www.roblox.com/communities/${requiredGroupId}`;
-
-  if (isInMainGroup) {
-    embeds.push({
-      color: statusColor,
-      description: `**${user.name}** is in the main group and good to verify\n\n**group id:** \`${requiredGroupId}\`\n**link:** [join here](${groupLink})`,
-      timestamp: getTimestamp(),
-    });
-  } else {
-    embeds.push({
-      color: statusColor,
-      description: `**${user.name}** is not in the main group\n\n**group id:** \`${requiredGroupId}\`\n**link:** [join here](${groupLink})`,
+      description: [SEP, `  flagged groups  ·  ask them to leave before verifying`, SEP, flaggedLines, SEP].join("\n"),
+      footer: { text: "◈  verification system" },
       timestamp: getTimestamp(),
     });
   }

@@ -1,6 +1,8 @@
 import type { Client } from "discord.js";
 import { readJSON, getGuild } from "./storage.js";
 
+const SEP = "───────────────────────────────";
+
 export function buildLeaderboardEmbed(
   guildPts: Record<string, number>,
   guildName: string,
@@ -13,16 +15,15 @@ export function buildLeaderboardEmbed(
   if (sorted.length === 0) return null;
 
   const list = sorted
-    .map(([id, pts], i) => `\`${i + 1}.\` <@${id}> — **${pts}** pt${pts !== 1 ? "s" : ""}`)
+    .map(([id, pts], i) => `  \`${i + 1}.\`  <@${id}>  ·  **${pts}** pt${pts !== 1 ? "s" : ""}`)
     .join("\n");
 
   const now = new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 
   return {
-    color: 0xffffff,
-    title: "Leaderboard",
-    description: list,
-    footer: { text: `${guildName} • updated ${now}` },
+    color: 0x6366f1,
+    description: `${SEP}\n${list}\n${SEP}`,
+    footer: { text: `◈  points  ·  updated ${now}` },
     timestamp: new Date().toISOString(),
   };
 }

@@ -1,16 +1,44 @@
 import type { Client } from "discord.js";
-import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 import { getAllTracks, updateLastGame, getDmOnJoin, getNotifyChannelId } from "../utils/trackerStorage.js";
 import { getUserPresence, getGameName, getUniverseDetails, getUserAvatarUrl } from "../utils/roblox.js";
 
-const SEP = "───────────────────────────────";
+const DARK_RED = 0x8B0000;
+
+async function sendAlert(
+  client: Client,
+  discordUserId: string,
+  notifyChannelId: string | null,
+  dmEnabled: boolean,
+  payload: { embeds: object[]; components: unknown[]; content?: string },
+): Promise<void> {
+  if (notifyChannelId) {
+    try {
+      const channel = await client.channels.fetch(notifyChannelId).catch(() => null) as import("discord.js").TextChannel | null;
+      if (channel?.isTextBased()) {
+        await channel.send({ content: `<@${discordUserId}>`, embeds: payload.embeds as never[], components: payload.components as never[] });
+        return;
+      }
+    } catch {
+      // channel failed — fall through to DM
+    }
+  }
+
+  if (dmEnabled) {
+    try {
+      const user = await client.users.fetch(discordUserId);
+      await user.send({ embeds: payload.embeds as never[], components: payload.components as never[] });
+    } catch {
+      // DM failed silently (user has DMs off etc.)
+    }
+  }
+}
 
 export async function runTrackerCycle(client: Client): Promise<void> {
   try {
     const tracks = getAllTracks();
     if (tracks.length === 0) return;
 
-    // Group by roblox user to minimize API calls
     const grouped = new Map<number, typeof tracks>();
     for (const t of tracks) {
       const list = grouped.get(t.robloxUserId) ?? [];
@@ -53,7 +81,6 @@ export async function runTrackerCycle(client: Client): Promise<void> {
             const notifyChannelId = getNotifyChannelId(entry.discordUserId);
             const dmEnabled = getDmOnJoin(entry.discordUserId);
 
-            // skip only if the user has no delivery method at all
             if (!dmEnabled && !notifyChannelId) continue;
 
             let gameName = "Unknown Game";
@@ -77,56 +104,44 @@ export async function runTrackerCycle(client: Client): Promise<void> {
                 ? `https://www.roblox.com/games/${currentPlaceId}`
                 : null;
 
-            const embed = new EmbedBuilder()
-              .setColor(0x6366f1)
-              .setAuthor({
-                name: `${entry.robloxUsername}  ·  hopped in a game`,
-                iconURL: avatarUrl ?? undefined,
-                url: `https://www.roblox.com/users/${robloxUserId}/profile`,
-              })
-              .setDescription(
-                `${SEP}\n` +
-                `  \`${gameName}\`` +
-                (entry.alertGame ? `\n  filter  ·  \`${entry.alertGame}\`` : "") +
-                `\n${SEP}`
-              )
-              .setThumbnail(avatarUrl ?? null)
-              .setFooter({ text: "◈  tracker" })
-              .setTimestamp();
+            const descLines = [
+              `**${entry.robloxUsername}** hopped in a game`,
+              `game: \`${gameName}\``,
+            ];
+            if (entry.alertGame) descLines.push(`filter: \`${entry.alertGame}\``);
+
+            const embed = {
+              color: DARK_RED,
+              author: avatarUrl
+                ? { name: entry.robloxUsername, icon_url: avatarUrl, url: `https://www.roblox.com/users/${robloxUserId}/profile` }
+                : undefined,
+              description: descLines.join("\n"),
+              footer: { text: "/curek tracker" },
+              timestamp: new Date().toISOString(),
+            };
 
             const components = joinUrl
               ? [
                   new ActionRowBuilder<ButtonBuilder>().addComponents(
                     new ButtonBuilder()
                       .setLabel(hasSpecificServer ? "join server" : "open game")
-                      .setStyle(hasSpecificServer ? ButtonStyle.Success : ButtonStyle.Secondary)
-                      .setURL(joinUrl)
+                      .setStyle(ButtonStyle.Danger)
+                      .setURL(joinUrl),
                   ),
                 ]
               : [];
 
-            try {
-              if (notifyChannelId) {
-                const channel = await client.channels.fetch(notifyChannelId).catch(() => null) as import("discord.js").TextChannel | null;
-                if (channel?.isTextBased()) {
-                  await channel.send({ content: `<@${entry.discordUserId}>`, embeds: [embed], components });
-                } else {
-                  console.error(`[Tracker] Channel ${notifyChannelId} not found or not text-based for user ${entry.discordUserId}`);
-                }
-              } else if (dmEnabled) {
-                const discordUser = await client.users.fetch(entry.discordUserId);
-                await discordUser.send({ embeds: [embed], components });
-              }
-            } catch (err) {
-              console.error(`[Tracker] Failed to send alert for ${entry.robloxUsername} -> ${entry.discordUserId}:`, err);
-            }
+            await sendAlert(client, entry.discordUserId, notifyChannelId, dmEnabled, {
+              embeds: [embed],
+              components,
+            });
 
           } else if (!isInGame && wasInGame) {
             updateLastGame(entry.discordUserId, robloxUserId, null, null);
           }
         }
       } catch {
-        // Skip individual user errors silently
+        // skip individual user errors
       }
     }
   } catch (err) {

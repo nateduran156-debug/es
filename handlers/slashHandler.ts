@@ -1184,8 +1184,9 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
             : `https://www.roblox.com/games/${presence.placeId}`;
         }
 
-        const lastSeen = presence?.lastOnline
-          ? `<t:${Math.floor(new Date(presence.lastOnline).getTime() / 1000)}:R>`
+        const lastOnlineMs = presence?.lastOnline ? new Date(presence.lastOnline).getTime() : NaN;
+        const lastSeen = (!isNaN(lastOnlineMs) && lastOnlineMs > 0)
+          ? `<t:${Math.floor(lastOnlineMs / 1000)}:R>`
           : "unknown";
 
         const lines = [
@@ -1195,14 +1196,15 @@ export async function handleSlashCommand(i: ChatInputCommandInteraction): Promis
           `  last seen  ${lastSeen}`,
         ].filter(Boolean).join("\n");
 
-        const embed = {
+        const embedBase = {
           color: WHITE,
-          author: { name: `${user.name}  ·  roblox`, icon_url: avatar ?? undefined },
           description: `${SEP}\n${lines}\n${SEP}`,
-          thumbnail: avatar ? { url: avatar } : undefined,
           footer: { text: "◈  tracker" },
           timestamp: ts(),
         };
+        const embed = avatar
+          ? { ...embedBase, author: { name: `${user.name}  ·  roblox`, icon_url: avatar }, thumbnail: { url: avatar } }
+          : { ...embedBase, author: { name: `${user.name}  ·  roblox` } };
 
         const components = joinUrl
           ? [new ActionRowBuilder<ButtonBuilder>().addComponents(

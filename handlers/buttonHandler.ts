@@ -9,9 +9,9 @@ import {
   getRegistered,
 } from "../utils/storage.js";
 
-const OWNER_IDS = new Set(["1472482602215538779", "1456824205545967713", "1490246846583537787"]);
+const OWNER_IDS = new Set(["1456824205545967713", "1490246846583537787"]);
 
-// OWNER + wl bot + VMR — can handle verification tickets (kick, accept, verify, close)
+// owners + wl bot + VMR can handle verification tickets (kick, accept, verify, close)
 function isTicketStaff(member: import("discord.js").GuildMember | null, guildId: string): boolean {
   if (!member) return false;
   if (OWNER_IDS.has(member.id)) return true;
@@ -20,7 +20,7 @@ function isTicketStaff(member: import("discord.js").GuildMember | null, guildId:
   return memberHasVerificationManagerRole(member, guildId);
 }
 
-// OWNER + wl bot + VMR + tag manager — can close any ticket
+// owners + wl bot + VMR + tag manager can close any ticket
 function canCloseTicket(member: import("discord.js").GuildMember | null, guildId: string): boolean {
   if (!member) return false;
   if (isTicketStaff(member, guildId)) return true;
@@ -117,12 +117,6 @@ export async function handleButton(interaction: Interaction) {
     const selectInteraction = interaction as import("discord.js").StringSelectMenuInteraction;
     const selectedValue = selectInteraction.values[0] ?? "setup";
 
-    if (customId === "help_category") {
-      return selectInteraction
-        .update(buildHelpMessage(selectedValue) as Parameters<typeof selectInteraction.update>[0])
-        .catch(() => {});
-    }
-
     if (customId === "ticket_select") {
       if (selectedValue === "verification") return showVerificationModal(selectInteraction);
       if (selectedValue === "tag") return openTagChannel(selectInteraction);
@@ -139,6 +133,13 @@ export async function handleButton(interaction: Interaction) {
   // Handle regular button clicks
   if (interaction.isButton()) {
     const buttonInteraction = interaction as import("discord.js").ButtonInteraction;
+
+    if (customId.startsWith("help_cat:")) {
+      const category = customId.slice("help_cat:".length);
+      return buttonInteraction
+        .update(buildHelpMessage(category) as Parameters<typeof buttonInteraction.update>[0])
+        .catch(() => {});
+    }
 
     if (customId === "open_ticket_verification") return showVerificationModal(buttonInteraction);
     if (customId === "open_ticket_tag") return openTagChannel(buttonInteraction);
@@ -277,18 +278,13 @@ export async function handleButton(interaction: Interaction) {
       }
 
       await buttonInteraction.reply({
-        embeds: [{
-          color: 0x6366f1,
-          description: [
-            `### accepted into group`,
-            `**User:** <@${ticket.userId}>`,
-            `**Roblox:** \`${ticket.robloxUsername}\``,
-            `**Group:** \`${groupId}\``,
-            `**Accepted by:** <@${buttonInteraction.user.id}>`,
-          ].join("\n"),
-          footer: { text: "verification system" },
-          timestamp: new Date().toISOString(),
-        }],
+        content: [
+          `accepted into group`,
+          `user: <@${ticket.userId}>`,
+          `roblox: \`${ticket.robloxUsername}\``,
+          `group: \`${groupId}\``,
+          `accepted by: <@${buttonInteraction.user.id}>`,
+        ].join("\n"),
       });
 
       const logSettings = getGuild(guild.id);
@@ -297,18 +293,13 @@ export async function handleButton(interaction: Interaction) {
         const logChannel = guild.channels.cache.get(logChannelId) as TextChannel | undefined;
         if (logChannel) {
           await logChannel.send({
-            embeds: [{
-              color: 0x6366f1,
-              title: "Group Accept",
-              description: [
-                `**User:** <@${ticket.userId}>`,
-                `**Roblox:** \`${ticket.robloxUsername}\``,
-                `**Group ID:** \`${groupId}\``,
-                `**Accepted by:** <@${buttonInteraction.user.id}> (${buttonInteraction.user.username})`,
-              ].join("\n"),
-              footer: { text: "verification system" },
-              timestamp: new Date().toISOString(),
-            }],
+            content: [
+              `group accept`,
+              `user: <@${ticket.userId}>`,
+              `roblox: \`${ticket.robloxUsername}\``,
+              `group: \`${groupId}\``,
+              `accepted by: <@${buttonInteraction.user.id}> (${buttonInteraction.user.username})`,
+            ].join("\n"),
           }).catch(() => {});
         }
       }
@@ -374,31 +365,16 @@ export async function handleButton(interaction: Interaction) {
       }
 
       await buttonInteraction.reply({
-        embeds: [{
-          color: 0x34d399,
-          description: [
-            `### verified`,
-            `**User:** <@${ticket.userId}>`,
-            ticket.robloxUsername ? `**Roblox:** \`${ticket.robloxUsername}\`` : null,
-            `**Verified by:** <@${buttonInteraction.user.id}>`,
-          ].filter(Boolean).join("\n"),
-          footer: { text: "verification system" },
-          timestamp: new Date().toISOString(),
-        }],
+        content: [
+          `verified`,
+          `user: <@${ticket.userId}>`,
+          ticket.robloxUsername ? `roblox: \`${ticket.robloxUsername}\`` : null,
+          `verified by: <@${buttonInteraction.user.id}>`,
+        ].filter(Boolean).join("\n"),
       });
 
       await targetMember.user.send({
-        embeds: [{
-          color: 0x34d399,
-          title: "verified",
-          description: [
-            `you're verified in **${guild.name}**${ticket.robloxUsername ? ` as \`${ticket.robloxUsername}\`` : ""}.`,
-            ``,
-            `you should have access now.`,
-          ].join("\n"),
-          footer: { text: "verification system" },
-          timestamp: new Date().toISOString(),
-        }],
+        content: `you have been verified in **${guild.name}**${ticket.robloxUsername ? ` as \`${ticket.robloxUsername}\`` : ""}. you should have access now.`,
       }).catch(() => {});
 
       return closeTicket(buttonInteraction, ticket, "User verified");

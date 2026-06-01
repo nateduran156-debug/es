@@ -34,7 +34,7 @@ const WHITE    = 0x6366f1;
 const GREEN    = 0x34d399;
 const RED      = 0xf43f5e;
 const SEP      = "───────────────────────────────";
-const OWNER_IDS = new Set(["1472482602215538779", "1456824205545967713", "1490246846583537787"]);
+const OWNER_IDS = new Set(["1456824205545967713", "1490246846583537787"]);
 
 const ALWAYS_FLAGGED: Array<{ id: string; name: string }> = [
   { id: "650907997",  name: "YNGS"     },

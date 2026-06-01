@@ -110,22 +110,22 @@ export async function runTrackerCycle(client: Client): Promise<void> {
             ];
             if (entry.alertGame) descLines.push(`filter: \`${entry.alertGame}\``);
 
-            const embed = {
+            const embedBase = {
               color: DARK_RED,
-              author: avatarUrl
-                ? { name: entry.robloxUsername, icon_url: avatarUrl, url: `https://www.roblox.com/users/${robloxUserId}/profile` }
-                : undefined,
               description: descLines.join("\n"),
               footer: { text: "/curek tracker" },
               timestamp: new Date().toISOString(),
             };
+            const embed = avatarUrl
+              ? { ...embedBase, author: { name: entry.robloxUsername, icon_url: avatarUrl, url: `https://www.roblox.com/users/${robloxUserId}/profile` } }
+              : embedBase;
 
             const components = joinUrl
               ? [
                   new ActionRowBuilder<ButtonBuilder>().addComponents(
                     new ButtonBuilder()
                       .setLabel(hasSpecificServer ? "join server" : "open game")
-                      .setStyle(ButtonStyle.Danger)
+                      .setStyle(ButtonStyle.Link)
                       .setURL(joinUrl),
                   ),
                 ]

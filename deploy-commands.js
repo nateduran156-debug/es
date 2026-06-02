@@ -10,7 +10,7 @@ import { data as pingToggleData } from "./commands/pingtoggle.js";
 
 const commands = [roleData.toJSON(), pingToggleData.toJSON()];
 
-const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);
+const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_BOT_TOKEN);
 
 try {
   console.log("Registering slash commands...");
@@ -27,3 +27,4 @@ try {
 } catch (error) {
   console.error("Failed to register commands:", error);
 }
+

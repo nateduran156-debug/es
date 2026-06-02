@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "name": "vanity-log-bot",
   "version": "1.0.0",
   "description": "Discord vanity detection bot with role assignment and ping controls",
@@ -12,3 +13,4 @@
     "dotenv": "^16.4.5"
   }
 }
+

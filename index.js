@@ -38,9 +38,9 @@ for (const command of commands) {
 
 // ─── Event: Ready ──────────────────────────────────────────────────────────────
 
-client.once("ready", () => {
-  console.log(`[BOT] Logged in as ${client.user.tag}`);
-  console.log(`[BOT] Serving ${client.guilds.cache.size} server(s)`);
+client.once("clientReady", (readyClient) => {
+  console.log(`[BOT] Logged in as ${readyClient.user.tag}`);
+  console.log(`[BOT] Serving ${readyClient.guilds.cache.size} server(s)`);
 });
 
 // ─── Event: Interaction (Slash Commands) ───────────────────────────────────────

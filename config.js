@@ -7,8 +7,8 @@ export const config = {
   logChannelId: process.env.LOG_CHANNEL_ID,
 };
 
-// Vanity groups to monitor. Add or remove entries as needed.
-// The key is the display name; the value is the vanity string to look for in a user's status.
+// Vanity groups to monitor.
+// Key = display name, value = string to look for in a user's status.
 export const vanityGroups = {
   FaZe: "/faze",
   Member: "/member",

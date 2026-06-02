@@ -1,9 +1,12 @@
 {
-  "type": "module",
   "name": "vanity-log-bot",
   "version": "1.0.0",
   "description": "Discord vanity detection bot with role assignment and ping controls",
+  "type": "module",
   "main": "index.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node index.js",
     "deploy": "node deploy-commands.js"
@@ -13,4 +16,3 @@
     "dotenv": "^16.4.5"
   }
 }
-

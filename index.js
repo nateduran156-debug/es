@@ -14,7 +14,7 @@ import * as pingToggleCommand from "./commands/pingtoggle.js";
 // Events
 import * as presenceUpdateEvent from "./events/presenceUpdate.js";
 
-// ─── Client Setup ────────────────────────────────────────────────────────────
+// ─── Client Setup ─────────────────────────────────────────────────────────────
 
 const client = new Client({
   intents: [
@@ -26,7 +26,7 @@ const client = new Client({
   partials: [Partials.GuildMember],
 });
 
-// ─── Load Commands ────────────────────────────────────────────────────────────
+// ─── Load Commands ─────────────────────────────────────────────────────────────
 
 client.commands = new Collection();
 
@@ -36,13 +36,14 @@ for (const command of commands) {
   client.commands.set(command.data.name, command);
 }
 
-// ─── Event: Ready ─────────────────────────────────────────────────────────────
+// ─── Event: Ready ──────────────────────────────────────────────────────────────
 
 client.once("ready", () => {
-  console.log(`Logged in as ${client.user.tag}`);
+  console.log(`[BOT] Logged in as ${client.user.tag}`);
+  console.log(`[BOT] Serving ${client.guilds.cache.size} server(s)`);
 });
 
-// ─── Event: Interaction (Slash Commands) ──────────────────────────────────────
+// ─── Event: Interaction (Slash Commands) ───────────────────────────────────────
 
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
@@ -50,14 +51,14 @@ client.on("interactionCreate", async (interaction) => {
   const command = client.commands.get(interaction.commandName);
 
   if (!command) {
-    console.warn(`No command found for: ${interaction.commandName}`);
+    console.warn(`[CMD] Unknown command: ${interaction.commandName}`);
     return;
   }
 
   try {
     await command.execute(interaction);
   } catch (error) {
-    console.error(`Error running /${interaction.commandName}:`, error);
+    console.error(`[CMD] Error running /${interaction.commandName}:`, error);
 
     const reply = {
       content: "Something went wrong while running that command.",
@@ -72,12 +73,50 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 
-// ─── Event: Presence Update (Vanity Detection) ────────────────────────────────
+// ─── Event: Presence Update (Vanity Detection) ─────────────────────────────────
 
 client.on(presenceUpdateEvent.name, (...args) =>
   presenceUpdateEvent.execute(...args)
 );
 
-// ─── Start ────────────────────────────────────────────────────────────────────
+// ─── Discord Connection Error Handling ─────────────────────────────────────────
 
+client.on("error", (error) => {
+  console.error("[BOT] Client error:", error);
+});
+
+client.on("warn", (message) => {
+  console.warn("[BOT] Warning:", message);
+});
+
+client.on("disconnect", () => {
+  console.warn("[BOT] Disconnected from Discord. Reconnecting automatically...");
+});
+
+// ─── Process-Level Error Handling (prevents Railway crashes) ───────────────────
+
+process.on("unhandledRejection", (reason) => {
+  console.error("[PROCESS] Unhandled promise rejection:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("[PROCESS] Uncaught exception:", error);
+  // Give Discord.js time to log the error before the process exits
+  setTimeout(() => process.exit(1), 500);
+});
+
+// ─── Graceful Shutdown (Railway sends SIGTERM before stopping the container) ───
+
+async function shutdown(signal) {
+  console.log(`[BOT] Received ${signal}. Shutting down gracefully...`);
+  client.destroy();
+  process.exit(0);
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
+
+// ─── Start ─────────────────────────────────────────────────────────────────────
+
+console.log("[BOT] Starting...");
 client.login(config.token);

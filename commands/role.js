@@ -16,26 +16,23 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction) {
   const selectedTag = interaction.options.getString("tag");
 
-  // Find the role in the server that matches the tag name
   const role = interaction.guild.roles.cache.find(
     (r) => r.name.toLowerCase() === selectedTag.toLowerCase()
   );
 
   if (!role) {
-    return interaction.reply({
-      content: `The **${selectedTag}** role doesn't exist on this server yet. Ask an admin to create it.`,
-      ephemeral: true,
+    return interaction.editReply({
+      content: `The ${selectedTag} role does not exist on this server. Ask an admin to create it first.`,
     });
   }
 
   const member = interaction.member;
 
-  // If they already have it, remove it (toggle behavior)
+  // Toggle: remove if they already have it
   if (member.roles.cache.has(role.id)) {
     await member.roles.remove(role);
-    return interaction.reply({
-      content: `Removed the **${selectedTag}** tag from you.`,
-      ephemeral: true,
+    return interaction.editReply({
+      content: `Removed the ${selectedTag} tag from your profile.`,
     });
   }
 
@@ -49,8 +46,7 @@ export async function execute(interaction) {
   await member.roles.remove(tagRoleIds);
   await member.roles.add(role);
 
-  return interaction.reply({
-    content: `You've been given the **${selectedTag}** tag.`,
-    ephemeral: true,
+  return interaction.editReply({
+    content: `You have been assigned the ${selectedTag} tag.`,
   });
 }

@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
 import { vanityGroups } from "../config.js";
-import { isPingEnabled, setPingEnabled, getAllPingSettings } from "../pingSettings.js";
+import { setPingEnabled, getAllPingSettings } from "../pingSettings.js";
 
 const groupChoices = Object.keys(vanityGroups).map((g) => ({ name: g, value: g }));
 
@@ -38,12 +38,11 @@ export async function execute(interaction) {
   if (sub === "status") {
     const settings = getAllPingSettings();
     const lines = Object.entries(settings).map(
-      ([group, enabled]) => `**${group}** — pings ${enabled ? "✅ ON" : "❌ OFF"}`
+      ([group, enabled]) => `${group} — pings ${enabled ? "ON" : "OFF"}`
     );
 
-    return interaction.reply({
+    return interaction.editReply({
       content: `**Ping Settings**\n\n${lines.join("\n")}`,
-      ephemeral: true,
     });
   }
 
@@ -53,9 +52,8 @@ export async function execute(interaction) {
 
     setPingEnabled(group, enabled);
 
-    return interaction.reply({
-      content: `Pings for **${group}** are now **${enabled ? "ON" : "OFF"}**.`,
-      ephemeral: true,
+    return interaction.editReply({
+      content: `Pings for ${group} are now ${enabled ? "ON" : "OFF"}.`,
     });
   }
 }

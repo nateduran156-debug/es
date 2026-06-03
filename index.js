@@ -12,6 +12,7 @@ import { config } from "./config.js";
 // Commands
 import * as roleCommand from "./commands/role.js";
 import * as pingToggleCommand from "./commands/pingtoggle.js";
+import * as helpCommand from "./commands/help.js";
 
 // Events
 import * as presenceUpdateEvent from "./events/presenceUpdate.js";
@@ -23,11 +24,13 @@ const missing = required.filter((key) => !process.env[key]);
 
 if (missing.length > 0) {
   console.error(`[BOT] Missing required environment variables: ${missing.join(", ")}`);
-  console.error("[BOT] Add them in Railway → your service → Variables tab.");
+  console.error("[BOT] Add them in Railway under your service Variables tab.");
   process.exit(1);
 }
 
 // ─── Client Setup ─────────────────────────────────────────────────────────────
+
+const PREFIX = ".";
 
 const client = new Client({
   intents: [
@@ -35,6 +38,7 @@ const client = new Client({
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildPresences,
     GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
   ],
   partials: [Partials.GuildMember],
 });
@@ -43,7 +47,7 @@ const client = new Client({
 
 client.commands = new Collection();
 
-const commands = [roleCommand, pingToggleCommand];
+const commands = [roleCommand, pingToggleCommand, helpCommand];
 
 for (const command of commands) {
   client.commands.set(command.data.name, command);
@@ -63,7 +67,7 @@ async function registerCommands() {
     );
     console.log("[CMD] Slash commands registered successfully.");
   } catch (error) {
-    console.error("[CMD] Failed to register slash commands:", error);
+    console.error("[CMD] Failed to register slash commands:", error.message);
   }
 }
 
@@ -75,7 +79,7 @@ client.once("clientReady", async (readyClient) => {
   await registerCommands();
 });
 
-// ─── Event: Interaction (Slash Commands) ───────────────────────────────────────
+// ─── Event: Slash Commands ─────────────────────────────────────────────────────
 
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
@@ -84,6 +88,14 @@ client.on("interactionCreate", async (interaction) => {
 
   if (!command) {
     console.warn(`[CMD] Unknown command: ${interaction.commandName}`);
+    await interaction.reply({ content: "That command does not exist.", ephemeral: true });
+    return;
+  }
+
+  try {
+    await interaction.deferReply({ ephemeral: true });
+  } catch (err) {
+    console.error(`[CMD] Failed to defer /${interaction.commandName}:`, err.message);
     return;
   }
 
@@ -91,18 +103,31 @@ client.on("interactionCreate", async (interaction) => {
     await command.execute(interaction);
   } catch (error) {
     console.error(`[CMD] Error running /${interaction.commandName}:`, error);
-
-    const reply = {
-      content: "Something went wrong while running that command.",
-      ephemeral: true,
-    };
-
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp(reply);
-    } else {
-      await interaction.reply(reply);
-    }
+    await interaction.editReply({ content: "Something went wrong. Please try again." });
   }
+});
+
+// ─── Event: Prefix Commands ───────────────────────────────────────────────────
+
+client.on("messageCreate", async (message) => {
+  if (message.author.bot) return;
+  if (!message.content.startsWith(PREFIX)) return;
+
+  const args = message.content.slice(PREFIX.length).trim().split(/\s+/);
+  const commandName = args.shift().toLowerCase();
+
+  if (commandName === "help") {
+    return message.reply(
+      "**Commands**\n\n" +
+      "/role — Assign yourself a group tag (FaZe, Member, Fraid, Sharingan tag, Rockstar)\n" +
+      "/pingtoggle set — Turn @everyone pings on or off for a vanity group\n" +
+      "/pingtoggle status — View current ping settings\n" +
+      "/help — Show this message\n\n" +
+      "Use the slash commands above by typing / in the message bar."
+    );
+  }
+
+  await message.reply("Use slash commands by typing / in the message bar to see all options.");
 });
 
 // ─── Event: Presence Update (Vanity Detection) ─────────────────────────────────
